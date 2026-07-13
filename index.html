@@ -470,84 +470,70 @@ function process(file) {
       const range = XLSX.utils.decode_range(ws['!ref']);
       const totalRows = range.e.r + 1;
 
-      // 1. Trobar CAPs i els seus rangs
-      const capStarts = [];
+      // 1. Buscar paraules clau a TOTES les cel·les de cada fila
+      const relevantRows = new Set();
+      const matchedKws = {};
+
       for (let R = range.s.r; R <= range.e.r; R++) {
-        const c1 = ws[XLSX.utils.encode_cell({ r: R, c: 1 })];
-        const c4 = ws[XLSX.utils.encode_cell({ r: R, c: 4 })];
-        if (c1 && c1.v === 'CAP') {
-          capStarts.push({ row: R, name: c4 ? String(c4.v) : '' });
+        let rowText = '';
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+          if (cell && cell.v != null) rowText += ' ' + String(cell.v);
+        }
+        const rowLower = rowText.toLowerCase();
+        const matched = keywords.find(kw => rowLower.includes(kw.toLowerCase()));
+        if (matched) {
+          relevantRows.add(R);
+          matchedKws[R] = matched;
         }
       }
 
-      // 2. Calcular rang de cada CAP
-      const caps = capStarts.map((cap, i) => ({
-        ...cap,
-        endRow: i + 1 < capStarts.length ? capStarts[i+1].row - 1 : range.e.r,
-        relevant: keywords.some(kw => cap.name.toLowerCase().includes(kw)),
-      }));
-
-      const relevantCaps = caps.filter(c => c.relevant);
-
-      if (relevantCaps.length === 0) {
-        showStatus('⚠️ No s\'han trobat capítols que coincideixin amb les paraules clau. Prova d\'afegir-ne.', 'error');
+      if (relevantRows.size === 0) {
+        showStatus('⚠️ Cap fila coincideix amb les paraules clau. Prova d\'afegir-ne.', 'error');
         return;
       }
 
-      // 3. Recollir files rellevants
-      const relevantRows = new Set();
-      relevantCaps.forEach(cap => {
-        for (let R = cap.row; R <= cap.endRow; R++) relevantRows.add(R);
-      });
-
-      // 4. Crear nou workbook amb la fulla original + fulla nova
+      // 2. Crear nou workbook amb fulla original + fulla nova
       const newWB = XLSX.utils.book_new();
-
-      // Fulla original
       XLSX.utils.book_append_sheet(newWB, ws, wb.SheetNames[0].substring(0, 31));
 
-      // Fulla nova: copiar cel·les de files rellevants
       const newWS = {};
       let destR = 0;
       const sortedRows = [...relevantRows].sort((a, b) => a - b);
-
-      // Copiar amplades de columna
       if (ws['!cols']) newWS['!cols'] = ws['!cols'];
 
       sortedRows.forEach(srcR => {
         for (let C = range.s.c; C <= range.e.c; C++) {
           const srcAddr = XLSX.utils.encode_cell({ r: srcR, c: C });
           const dstAddr = XLSX.utils.encode_cell({ r: destR, c: C });
-          if (ws[srcAddr]) {
-            newWS[dstAddr] = { ...ws[srcAddr] };
-          }
+          if (ws[srcAddr]) newWS[dstAddr] = { ...ws[srcAddr] };
         }
         destR++;
       });
 
       newWS['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: range.s.c }, e: { r: destR - 1, c: range.e.c } });
-      if (ws['!cols']) newWS['!cols'] = ws['!cols'];
-
       XLSX.utils.book_append_sheet(newWB, newWS, 'SEGURETAT PCI-CCTV-ALARMES');
-
       resultWB = newWB;
 
-      // 5. Mostrar resultats
-      document.getElementById('statCaps').textContent = relevantCaps.length;
+      // 3. Resum de paraules clau trobades
+      const kwCount = {};
+      Object.values(matchedKws).forEach(kw => { kwCount[kw] = (kwCount[kw] || 0) + 1; });
+
+      document.getElementById('statCaps').textContent = Object.keys(kwCount).length;
       document.getElementById('statRows').textContent = relevantRows.size;
       document.getElementById('statTotal').textContent = totalRows;
 
       const cl = document.getElementById('capsList');
       cl.innerHTML = '';
-      relevantCaps.forEach(cap => {
+      Object.entries(kwCount).sort((a,b) => b[1]-a[1]).forEach(([kw, count]) => {
         const d = document.createElement('div');
         d.className = 'cap-item';
-        d.innerHTML = `<div class="dot"></div><strong>${cap.name}</strong><span>${cap.endRow - cap.row + 1} files</span>`;
+        d.innerHTML = `<div class="dot"></div><strong>"${kw}"</strong><span>${count} fila${count>1?'s':''}</span>`;
         cl.appendChild(d);
       });
 
       document.getElementById('results').style.display = 'block';
-      showStatus(`✅ ${relevantCaps.length} capítol(s) detectat(s). Ja pots descarregar l'Excel.`, 'success');
+      showStatus(`✅ ${relevantRows.size} files detectades. Ja pots descarregar l'Excel.`, 'success');
 
     } catch (err) {
       showStatus('❌ Error processant el fitxer: ' + err.message, 'error');
