@@ -366,59 +366,165 @@ function process(file) {
       const range = XLSX.utils.decode_range(ws['!ref']);
       const totalRows = range.e.r + 1;
 
-      // Buscar paraules clau a totes les cel·les de cada fila
-      const relevantRows = new Set();
-      const matchedKws = {};
+      // ── CAPÍTOLS que incloem per títol ──
+      const CAP_KW = [
+        "seguretat contra incendis","seguridad contra incendios",
+        "videoporter","videoportero",
+        "intercomunicació","intercomunicacion","intercomunicación",
+        "intrusió","intrusio","intrusión","alarma","anti-intrusió",
+        "cctv","videovigilà","videovigilancia","circuit tancat","circuito cerrado",
+        "control d'accés","control de acceso","control acces",
+        "mecanismes","mecanismos",
+        "cablejat elèctric","cablejat electric","cableado eléctrico",
+      ];
+
+      // ── PARAULES CLAU específiques a la descripció ──
+      const DESC_KW = [
+        "central d'incendi","central incendi","central incendio","central analògica","central analogica","central convencional",
+        "detector de fum","detector òptic","detector optic","detector tèrmic","detector termic","detector termovelocimètric",
+        "detector lineal","detector d'incendi","detector incendi",
+        "mòdul d'entrada","mòdul entrada","modul entrada","módulo entrada",
+        "mòdul de sortida","mòdul sortida","modul sortida","módulo salida","mòdul e/s","modul e/s",
+        "pulsador d'alarma","pulsador alarma",
+        "sirena d'incendi","sirena incendi","sirena interior","sirena exterior",
+        "extintor","extintors","BIE","boca d'incendi","boca incendi",
+        "sprinkler","rociador",
+        "central de detecció","central detecció","central deteccion",
+        "bateria 12v","bateria estanca",
+        "font d'alimentació incendi","font alimentació incendi",
+        "desenfumatge","exutori",
+        "ignífug","ignifug","ignifugo","intumescent",
+        "porta tallafoc","porta EI",
+        "cable incendi","cable de incendio","cable resistente al fuego",
+        "grup de pressió contra incendi","grup pressió contra incendi","grupo presión contra incendio",
+        "EN54","UNE 23","RD 513",
+        "detector de CO","detector CO","detecció CO","deteccion CO",
+        "detector de NO","detector NO","central CO","central de CO",
+        "monòxid de carboni","monoxido de carbono",
+        "central d'alarma","central alarma","central de alarma",
+        "detector PIR","detector de moviment","detector volumètric","detector volumetric",
+        "detector magnètic","detector magnetic","detector de vibraci","detector de trencament",
+        "teclat d'alarma","teclado alarma","sirena d'alarma","sirena alarma",
+        "lector de targeta","lector targeta","lector de tarjeta","lector biomètric","lector biometric",
+        "controladora d'accés","controladora accés","controladora acceso",
+        "electròiman","electroiman","electroimán","botó de sortida","boton salida",
+        "càmera IP","camara IP","càmera domo","camara domo","càmera bullet","camara bullet",
+        "càmera PTZ","camara PTZ","càmera analògica","camara analogica",
+        "gravador NVR","gravador DVR","NVR","DVR","monitor CCTV","switch PoE","switch poe",
+        "plaques de carrer","placa de carrer","placa exterior videoporter",
+        "monitor interior videoporter","monitor videoporter",
+        "senyal de sortida d'emergència","senyal emergència","llum d'emergència","llum emergencia",
+        "pictograma extintor","pictograma bombers",
+      ].concat(userKeywords);
+
+      const capKwL  = CAP_KW.map(k => k.toLowerCase());
+      const descKwL = DESC_KW.map(k => k.toLowerCase());
+
+      function capRelevant(t) { const tl = t.toLowerCase(); return capKwL.some(k => tl.includes(k)); }
+      function descRelevant(t) { const tl = t.toLowerCase(); return descKwL.some(k => tl.includes(k)); }
+
+      // ── Recórrer totes les files ──
+      const relevant = [];
+      const groupCount = {};
+      let curCap = '', curScap = '', curSscap = '';
+      let capOk = false, scapOk = false, sscapOk = false;
 
       for (let R = range.s.r; R <= range.e.r; R++) {
-        let rowText = '';
-        for (let C = range.s.c; C <= range.e.c; C++) {
-          const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
-          if (cell && cell.v != null) rowText += ' ' + String(cell.v);
-        }
-        const rowLower = rowText.toLowerCase();
-        const matched = userKeywords.find(kw => rowLower.includes(kw.toLowerCase()));
-        if (matched) {
-          relevantRows.add(R);
-          matchedKws[R] = matched;
+        const getCell = C => ws[XLSX.utils.encode_cell({ r: R, c: C })];
+        const val = C => { const c = getCell(C); return c && c.v != null ? String(c.v) : ''; };
+
+        const tipus = val(1);
+        const descE = val(4);
+
+        if (tipus === 'CAP') {
+          curCap = descE; curScap = ''; curSscap = '';
+          capOk = capRelevant(descE); scapOk = false; sscapOk = false;
+        } else if (tipus === 'SCAP') {
+          curScap = descE; curSscap = '';
+          scapOk = capRelevant(descE); sscapOk = false;
+        } else if (tipus === 'SSCAP') {
+          curSscap = descE;
+          sscapOk = capRelevant(descE);
+        } else if (tipus === 'PARTIDA') {
+          const inCap  = capOk || scapOk || sscapOk;
+          const inDesc = descRelevant(descE);
+          if (!inCap && !inDesc) continue;
+
+          const num   = val(0);
+          const qty   = val(2);
+          const unit  = val(3);
+          const price = getCell(6) ? getCell(6).v : null;
+          const imp   = getCell(7) ? getCell(7).v : null;
+
+          let desc = descE.replace(/\n/g, ' ');
+          if (desc.length > 120) {
+            const cut = desc.substring(0, 120);
+            const dot = cut.lastIndexOf('.');
+            desc = dot > 60 ? cut.substring(0, dot + 1) : cut + '...';
+          }
+
+          const capitol = curSscap || curScap || curCap;
+          const grp = getGroup(inCap ? capitol : descE);
+          groupCount[grp] = (groupCount[grp] || 0) + 1;
+
+          relevant.push({ num, capitol, desc, qty, unit, price, imp });
         }
       }
 
-      if (relevantRows.size === 0) {
-        showStatus('⚠️ Cap fila coincideix amb els criteris de seguretat. Comprova el format del fitxer.', 'error');
+      if (relevant.length === 0) {
+        showStatus('⚠️ Cap fila detectada. Comprova el format del fitxer o afegeix paraules clau.', 'error');
         return;
       }
 
-      // Crear nou workbook
+      // ── Crear fulla neta ──
       const newWB = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(newWB, ws, wb.SheetNames[0].substring(0, 31));
 
       const newWS = {};
-      let destR = 0;
-      const sortedRows = [...relevantRows].sort((a, b) => a - b);
-      if (ws['!cols']) newWS['!cols'] = ws['!cols'];
+      // Capçalera
+      const hdrs = ['Nº', 'Capítol', 'Descripció', 'Quantitat', 'Unitats', 'Preu unit. (€)', 'Import (€)'];
+      hdrs.forEach((h, i) => {
+        const addr = XLSX.utils.encode_cell({ r: 0, c: i });
+        newWS[addr] = { v: h, t: 's', s: { font: { bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: 'C2241E' } }, alignment: { horizontal: 'center' } } };
+      });
 
-      sortedRows.forEach(srcR => {
-        for (let C = range.s.c; C <= range.e.c; C++) {
-          const srcAddr = XLSX.utils.encode_cell({ r: srcR, c: C });
-          const dstAddr = XLSX.utils.encode_cell({ r: destR, c: C });
-          if (ws[srcAddr]) newWS[dstAddr] = { ...ws[srcAddr] };
+      let destR = 1;
+      let lastCap = null;
+
+      relevant.forEach(({ num, capitol, desc, qty, unit, price, imp }) => {
+        // Fila separadora de capítol
+        if (capitol !== lastCap) {
+          const addr = XLSX.utils.encode_cell({ r: destR, c: 0 });
+          newWS[addr] = { v: capitol, t: 's', s: { font: { bold: true, italic: true, color: { rgb: '555555' } }, fill: { fgColor: { rgb: 'EEEEEE' } } } };
+          for (let c = 1; c < 7; c++) {
+            newWS[XLSX.utils.encode_cell({ r: destR, c })] = { v: '', t: 's', s: { fill: { fgColor: { rgb: 'EEEEEE' } } } };
+          }
+          destR++;
+          lastCap = capitol;
         }
+
+        const rowFill = destR % 2 === 0 ? 'FAFAFA' : 'FFFFFF';
+        const rowData = [num, capitol, desc, qty, unit, price, imp];
+        rowData.forEach((v, c) => {
+          const addr = XLSX.utils.encode_cell({ r: destR, c });
+          const isMoney = (c === 5 || c === 6) && v != null;
+          newWS[addr] = {
+            v: v ?? '',
+            t: typeof v === 'number' ? 'n' : 's',
+            z: isMoney ? '#,##0.00 €' : undefined,
+            s: { fill: { fgColor: { rgb: rowFill } }, alignment: { horizontal: c === 2 ? 'left' : 'center', wrapText: c === 2 } }
+          };
+        });
         destR++;
       });
 
-      newWS['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: range.s.c }, e: { r: destR - 1, c: range.e.c } });
+      newWS['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: destR - 1, c: 6 } });
+      newWS['!cols'] = [6, 30, 55, 12, 10, 16, 14].map(w => ({ wch: w }));
+      newWS['!freeze'] = { xSplit: 0, ySplit: 1 };
       XLSX.utils.book_append_sheet(newWB, newWS, 'SEGURETAT PCI-CCTV-ALARMES');
       resultWB = newWB;
 
-      // Agrupar conceptes trobats
-      const groupCount = {};
-      Object.values(matchedKws).forEach(kw => {
-        const g = getGroup(kw);
-        groupCount[g] = (groupCount[g] || 0) + 1;
-      });
-
-      document.getElementById('statRows').textContent = relevantRows.size;
+      document.getElementById('statRows').textContent = relevant.length;
       document.getElementById('statTotal').textContent = totalRows;
       document.getElementById('statKws').textContent = Object.keys(groupCount).length;
 
@@ -432,7 +538,7 @@ function process(file) {
       });
 
       document.getElementById('results').style.display = 'block';
-      showStatus(`✅ ${relevantRows.size} files detectades. Ja pots descarregar l'Excel.`, 'success');
+      showStatus(`✅ ${relevant.length} files detectades. Ja pots descarregar l'Excel.`, 'success');
 
     } catch (err) {
       showStatus('❌ Error: ' + err.message, 'error');
