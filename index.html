@@ -6,157 +6,64 @@
 <title>Extractor PCI · Plana Fàbrega</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap');
-
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   :root {
-    --red:     #C2241E;
-    --red-dk:  #9a1b16;
-    --red-lt:  #fdf1f0;
-    --red-mid: #f5c6c4;
-    --gray-50: #f8f8f8;
-    --gray-100:#f0f0f0;
-    --gray-300:#d0d0d0;
-    --gray-500:#888;
-    --gray-700:#444;
-    --gray-900:#1a1a1a;
-    --white:   #ffffff;
-    --radius:  10px;
-    --shadow:  0 2px 12px rgba(0,0,0,0.07);
+    --red: #C2241E; --red-dk: #9a1b16; --red-lt: #fdf1f0; --red-mid: #f5c6c4;
+    --gray-50: #f8f8f8; --gray-100: #f0f0f0; --gray-300: #d0d0d0;
+    --gray-500: #888; --gray-900: #1a1a1a; --radius: 10px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--gray-50); color: var(--gray-900); min-height: 100vh; }
 
-  header {
-    background: var(--red);
-    padding: 0 32px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+  header { background: var(--red); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
   .logo { display: flex; align-items: center; gap: 10px; color: white; font-weight: 700; font-size: 0.95rem; }
-  .logo-icon {
-    width: 28px; height: 28px;
-    background: rgba(255,255,255,0.18);
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .badge-tool {
-    background: rgba(255,255,255,0.18);
-    color: white; font-size: 0.72rem; font-weight: 600;
-    padding: 3px 10px; border-radius: 20px;
-    letter-spacing: 0.04em; text-transform: uppercase;
-  }
+  .logo-icon { width: 28px; height: 28px; background: rgba(255,255,255,0.18); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .badge { background: rgba(255,255,255,0.18); color: white; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
 
-  .hero {
-    background: white;
-    border-bottom: 1px solid var(--gray-100);
-    padding: 48px 32px 40px;
-    text-align: center;
-  }
-  .hero h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 10px; line-height: 1.2; }
+  .hero { background: white; border-bottom: 1px solid var(--gray-100); padding: 44px 32px 36px; text-align: center; }
+  .hero h1 { font-size: 1.65rem; font-weight: 700; margin-bottom: 10px; }
   .hero h1 span { color: var(--red); }
-  .hero p { color: var(--gray-500); font-size: 0.95rem; max-width: 480px; margin: 0 auto; line-height: 1.6; }
+  .hero p { color: var(--gray-500); font-size: 0.9rem; max-width: 460px; margin: 0 auto; line-height: 1.6; }
 
-  main { max-width: 700px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 20px; }
+  main { max-width: 680px; margin: 36px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 18px; }
 
-  .card {
-    background: white;
-    border-radius: var(--radius);
-    border: 1px solid var(--gray-100);
-    box-shadow: var(--shadow);
-    padding: 28px;
-  }
-  .card-title {
-    font-size: 0.78rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--gray-500); margin-bottom: 16px;
-  }
+  .card { background: white; border-radius: var(--radius); border: 1px solid var(--gray-100); box-shadow: var(--shadow); padding: 26px; }
+  .card-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-500); margin-bottom: 14px; }
 
-  .drop-zone {
-    border: 2px dashed var(--red-mid);
-    border-radius: 8px; padding: 56px 24px;
-    text-align: center; cursor: pointer;
-    transition: all 0.18s; background: var(--red-lt);
-  }
+  .drop-zone { border: 2px dashed var(--red-mid); border-radius: 8px; padding: 52px 24px; text-align: center; cursor: pointer; transition: all 0.18s; background: var(--red-lt); }
   .drop-zone:hover, .drop-zone.over { border-color: var(--red); background: #fae8e7; }
-  .drop-icon {
-    width: 56px; height: 56px;
-    background: white; border-radius: 14px;
-    border: 1px solid var(--red-mid);
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 16px;
-    box-shadow: 0 2px 8px rgba(194,36,30,0.08);
-  }
-  .drop-zone h3 { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
-  .drop-zone p { font-size: 0.85rem; color: var(--gray-500); }
+  .drop-icon { width: 52px; height: 52px; background: white; border-radius: 12px; border: 1px solid var(--red-mid); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .drop-zone h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 5px; }
+  .drop-zone p { font-size: 0.82rem; color: var(--gray-500); }
   .drop-zone strong { color: var(--red); }
   input[type=file] { display: none; }
 
-  #status {
-    display: none; padding: 13px 16px;
-    border-radius: 8px; font-size: 0.875rem; font-weight: 500;
-  }
+  .kw-add { display: flex; gap: 8px; }
+  .kw-add input { flex: 1; border: 1px solid var(--gray-300); border-radius: 7px; padding: 9px 12px; font-size: 0.875rem; font-family: Inter, sans-serif; outline: none; }
+  .kw-add input:focus { border-color: var(--red); }
+  #kwAdded { margin-top: 8px; font-size: 0.78rem; color: var(--gray-500); min-height: 18px; }
+
+  .btn { background: var(--red); color: white; border: none; border-radius: 7px; padding: 9px 20px; font-size: 0.875rem; font-weight: 600; font-family: Inter, sans-serif; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+  .btn:hover { background: var(--red-dk); }
+  .btn-ghost { background: white; color: var(--red); border: 1.5px solid var(--red-mid); border-radius: 7px; padding: 9px 20px; font-size: 0.875rem; font-weight: 600; font-family: Inter, sans-serif; cursor: pointer; transition: all 0.15s; }
+  .btn-ghost:hover { background: var(--red-lt); }
+
+  #status { display: none; padding: 12px 16px; border-radius: 8px; font-size: 0.875rem; font-weight: 500; }
   #status.info    { background: #e8f4fd; color: #1a5276; border: 1px solid #aed6f1; }
   #status.success { background: #eafaf1; color: #1a6636; border: 1px solid #a9dfbf; }
   #status.error   { background: var(--red-lt); color: var(--red-dk); border: 1px solid var(--red-mid); }
 
   #results { display: none; }
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 18px; }
+  .stat { background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: 8px; padding: 14px; text-align: center; }
+  .stat.hi { background: var(--red-lt); border-color: var(--red-mid); }
+  .stat .num { font-size: 1.8rem; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .stat.hi .num { color: var(--red); }
+  .stat .lbl { font-size: 0.72rem; color: var(--gray-500); line-height: 1.3; }
+  .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
 
-  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px; }
-  .stat { background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: 8px; padding: 16px; text-align: center; }
-  .stat.highlight { background: var(--red-lt); border-color: var(--red-mid); }
-  .stat .num { font-family: 'IBM Plex Mono', monospace; font-size: 2rem; font-weight: 500; line-height: 1; margin-bottom: 5px; }
-  .stat.highlight .num { color: var(--red); }
-  .stat .lbl { font-size: 0.75rem; color: var(--gray-500); line-height: 1.3; }
-
-  .kw-found { margin-bottom: 20px; }
-  .kw-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 14px; border-radius: 7px;
-    background: var(--red-lt); border: 1px solid var(--red-mid);
-    margin-bottom: 8px; font-size: 0.875rem;
-  }
-  .kw-item .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
-  .kw-item strong { font-weight: 600; color: var(--gray-900); }
-  .kw-item span { color: var(--gray-500); font-size: 0.8rem; margin-left: auto; white-space: nowrap; }
-
-  .action-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .btn {
-    background: var(--red); color: white; border: none;
-    border-radius: 7px; padding: 10px 22px;
-    font-size: 0.875rem; font-weight: 600;
-    font-family: 'Inter', sans-serif; cursor: pointer;
-    transition: background 0.15s;
-  }
-  .btn:hover { background: var(--red-dk); }
-  .btn-ghost {
-    background: white; color: var(--red);
-    border: 1.5px solid var(--red-mid); border-radius: 7px;
-    padding: 10px 22px; font-size: 0.875rem; font-weight: 600;
-    font-family: 'Inter', sans-serif; cursor: pointer;
-    transition: all 0.15s;
-  }
-  .btn-ghost:hover { background: var(--red-lt); border-color: var(--red); }
-
-  .kw-grid { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:4px; }
-  .kw-tag {
-    display:flex; align-items:center; gap:5px;
-    background:var(--red-lt); border:1px solid var(--red-mid);
-    color:var(--red-dk); border-radius:20px;
-    padding:4px 10px 4px 12px; font-size:0.78rem; font-weight:500;
-  }
-  .kw-tag button { background:none; border:none; color:var(--red); cursor:pointer; font-size:1rem; line-height:1; padding:0; }
-  details summary::-webkit-details-marker { display:none; }
-
-  footer { text-align: center; padding: 32px 20px; color: var(--gray-300); font-size: 0.78rem; }
-
-  @media (max-width: 520px) {
-    .stats-row { grid-template-columns: 1fr 1fr; }
-    header { padding: 0 16px; }
-    .hero { padding: 32px 16px 28px; }
-    .hero h1 { font-size: 1.4rem; }
-  }
+  footer { text-align: center; padding: 28px 20px; color: var(--gray-300); font-size: 0.75rem; }
 </style>
 </head>
 <body>
@@ -171,22 +78,22 @@
     </div>
     Plana Fàbrega
   </div>
-  <span class="badge-tool">Eina interna</span>
+  <span class="badge">Eina interna</span>
 </header>
 
 <div class="hero">
   <h1>Extractor <span>PCI · CCTV · Alarmes</span></h1>
-  <p>Puja una memòria d'instal·lacions en Excel i obtén una nova fulla amb només les partides de seguretat, incendis, CCTV, videoporter i mecanismes.</p>
+  <p>Puja una memòria d'instal·lacions i obtén una fulla neta amb les partides de seguretat llestes per valorar.</p>
 </div>
 
 <main>
 
   <div class="card">
-    <div class="card-title">Selecciona la memòria del projecte</div>
+    <div class="card-title">1 · Selecciona la memòria</div>
     <div class="drop-zone" id="dropZone">
       <input type="file" id="fileInput" accept=".xlsx">
       <div class="drop-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C2241E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C2241E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="17 8 12 3 7 8"/>
           <line x1="12" y1="3" x2="12" y2="15"/>
@@ -197,38 +104,24 @@
     </div>
   </div>
 
-  <div id="status"></div>
-
-  <div class="card" style="padding:20px 28px;">
-    <div style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--gray-500); margin-bottom:12px;">Afegir paraula clau</div>
-    <div style="display:flex; gap:8px;">
-      <input type="text" id="kwInput" placeholder="Ex: central analògica, cable incendis..."
-        style="flex:1; border:1px solid var(--gray-300); border-radius:7px; padding:9px 14px; font-size:0.875rem; font-family:Inter,sans-serif; outline:none; color:var(--gray-900);" />
+  <div class="card">
+    <div class="card-title">2 · Afegir paraula clau extra (opcional)</div>
+    <div class="kw-add">
+      <input type="text" id="kwInput" placeholder="Ex: central analògica, grup pressió..." />
       <button class="btn" onclick="addKw()">+ Afegir</button>
     </div>
-    <div id="kwAdded" style="margin-top:10px; font-size:0.78rem; color:var(--gray-500);"></div>
+    <div id="kwAdded"></div>
   </div>
 
+  <div id="status"></div>
+
   <div class="card" id="results">
-    <div class="card-title">Resultat de l'anàlisi</div>
-
+    <div class="card-title">3 · Resultat</div>
     <div class="stats-row">
-      <div class="stat highlight">
-        <div class="num" id="statRows">0</div>
-        <div class="lbl">Files de seguretat<br>detectades</div>
-      </div>
-      <div class="stat">
-        <div class="num" id="statTotal">0</div>
-        <div class="lbl">Files totals<br>a la memòria</div>
-      </div>
-      <div class="stat">
-        <div class="num" id="statKws">0</div>
-        <div class="lbl">Conceptes<br>identificats</div>
-      </div>
+      <div class="stat hi"><div class="num" id="statRows">0</div><div class="lbl">Partides detectades</div></div>
+      <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Total partides memòria</div></div>
+      <div class="stat"><div class="num" id="statCaps">0</div><div class="lbl">Capítols trobats</div></div>
     </div>
-
-    <div class="kw-found" id="kwList"></div>
-
     <div class="action-row">
       <button class="btn" onclick="downloadResult()">⬇ Descarregar Excel</button>
       <button class="btn-ghost" onclick="resetApp()">↩ Nova memòria</button>
@@ -240,330 +133,149 @@
 <footer>Plana Fàbrega · Grup Pyrénées · Eina interna per a memòries tècniques</footer>
 
 <script>
-// ── PARAULES CLAU (internes, no es mostren a la UI) ──────────────────────────
-const KEYWORDS = [
-  // PCI - Incendis
-  "incendi", "incendio", "seguretat contra incendis",
-  "central incendis", "central incendios", "central analògica", "central analogica",
-  "central convencional", "central d'incendi",
-  "detector", "detecció incendi", "deteccion incendio",
-  "mòdul entrada", "modul entrada", "módulo entrada",
-  "mòdul sortida", "modul sortida", "módulo salida",
-  "mòdul e/s", "modul e/s", "MES", "MCP",
-  "extintor", "extint", "extinció", "extincion",
-  "bies", "sprinkler", "rociador",
-  "pulsador", "sirena", "fum", "humo", "bombers",
-  "EN54", "FOC",
-  "desenfumatge", "desenfumado", "exutori",
-  "sectoritzaci", "sectorización",
-  "ignífug", "ignifug", "ignifugo", "resistència al foc", "resistencia al fuego",
-  "EI 60", "EI 120", "EI60", "EI120",
-  "intumescent", "passiva contra incendi",
-  "cable incendis", "cable incendios", "cable resistente",
-  "CPR", "LSZH", "Cca",
-  "grup pressió", "grup presió", "grupo presion", "grup de pressió",
-  // CO / NO / Gas
-  "detector CO", "detecció CO", "deteccion CO",
-  "detector NO", "detecció NO",
-  "monòxid", "monoxid", "monóxido",
-  "central CO", "central NO",
-  // Alarmes / Intrusió
-  "intrusió", "intrusio", "intrusión",
-  "alarma", "PIR", "magnètic", "magnetic",
-  "detector de moviment", "control d'accés", "control acces", "control acceso",
-  "lector", "teclat", "teclado",
-  // CCTV
-  "CCTV", "càmera", "camara", "càmeres", "camaras",
-  "videovigilàn", "videovigilancia",
-  "NVR", "DVR", "gravador", "enregistrador",
-  "circuit tancat", "circuito cerrado",
-  // Videoporter
-  "videoporter", "videoportero",
-  "intercomunicació", "intercomunicacion", "intercomunicación",
-  // Mecanismes
-  "mecanismes", "mecanismos", "mecanisme", "mecanismo",
-  "endolls", "interruptors", "endoll", "interruptor",
+// ── PARAULES CLAU ─────────────────────────────────────────────────────────────
+const CAP_KW = [
+  "seguretat contra incendis","seguridad contra incendios",
+  "videoporter","videoportero","intercomunicació","intercomunicacion","intercomunicación",
+  "intrusió","intrusio","intrusión","alarma","anti-intrusió",
+  "cctv","videovigilà","videovigilancia","circuit tancat","circuito cerrado",
+  "control d'accés","control de acceso","control acces",
+  "mecanismes","mecanismos","cablejat elèctric","cablejat electric","cableado eléctrico",
 ];
 
-// Agrupació per mostrar al resum
-const GROUPS = [
-  { label: "🔥 Incendis / PCI",      keys: ["incendi","incendio","central","detector","extintor","extint","extinció","bies","sprinkler","pulsador","sirena","fum","humo","bombers","EN54","FOC","desenfumatge","exutori","sectoritz","ignífug","ignifug","intumescent","cable incend","CPR","LSZH","Cca","grup press","EI"] },
-  { label: "🟡 CO / NO / Gas",        keys: ["CO","NO","monòxid","monoxid","monóxido"] },
-  { label: "🔴 Mòduls entrada/sortida",keys: ["mòdul","modul","módulo","MES","MCP"] },
-  { label: "🚨 Alarmes / Intrusió",   keys: ["intrusió","intrusio","intrusión","alarma","PIR","magnètic","magnetic","lector","teclat","teclado","control d'accés","control acces"] },
-  { label: "📹 CCTV",                 keys: ["CCTV","càmera","camara","videovigilà","NVR","DVR","gravador","enregistrador","circuit tancat","circuito cerrado"] },
-  { label: "🔔 Videoporter",          keys: ["videoporter","videoportero","intercomunicació","intercomunicacion"] },
-  { label: "🔌 Mecanismes",           keys: ["mecanisme","mecanismo","mecanismes","mecanismos","endoll","interruptor"] },
+const DESC_KW = [
+  "central d'incendi","central incendi","central incendio","central analògica","central analogica","central convencional",
+  "detector de fum","detector òptic","detector optic","detector tèrmic","detector termic","detector termovelocimètric",
+  "detector lineal","detector d'incendi","detector incendi",
+  "mòdul d'entrada","mòdul entrada","modul entrada","módulo entrada",
+  "mòdul de sortida","mòdul sortida","modul sortida","módulo salida",
+  "pulsador d'alarma","pulsador alarma",
+  "sirena d'incendi","sirena incendi","sirena interior","sirena exterior",
+  "extintor","extintors","BIE","boca d'incendi","boca incendi","sprinkler","rociador",
+  "central de detecció","central detecció","bateria 12v","bateria estanca",
+  "desenfumatge","exutori","ignífug","ignifug","intumescent","porta tallafoc","porta EI",
+  "cable incendi","cable de incendio","grup de pressió contra incendi","grupo presión contra incendio",
+  "EN54","UNE 23","RD 513",
+  "detector de CO","detector CO","detecció CO","detector de NO","detector NO","central CO",
+  "monòxid de carboni","monoxido de carbono",
+  "central d'alarma","central alarma","detector PIR","detector de moviment","detector volumètric",
+  "detector magnètic","detector magnetic","teclat d'alarma","teclado alarma","sirena d'alarma",
+  "lector de targeta","lector targeta","lector de tarjeta","controladora d'accés","controladora accés",
+  "càmera IP","camara IP","càmera domo","camara domo","càmera bullet","camara bullet",
+  "càmera PTZ","camara PTZ","gravador NVR","gravador DVR","NVR","DVR","monitor CCTV",
+  "plaques de carrer","placa de carrer","monitor videoporter",
+  "llum d'emergència","llum emergencia","pictograma extintor","pictograma bombers",
 ];
 
-function getGroup(kw) {
-  const kwL = kw.toLowerCase();
-  for (const g of GROUPS) {
-    if (g.keys.some(k => kwL.includes(k.toLowerCase()) || k.toLowerCase().includes(kwL))) return g.label;
-  }
-  return "🔧 Altres";
-}
+let extraKw = [];
 
-// ── KEYWORDS UI ─────────────────────────────────────────────────────────────
-let userKeywords = [...KEYWORDS];
-
-let extraKeywords = [];
+function capOk(t)  { const tl=t.toLowerCase(); return CAP_KW.concat(extraKw).some(k=>tl.includes(k.toLowerCase())); }
+function descOk(t) { const tl=t.toLowerCase(); return DESC_KW.concat(extraKw).some(k=>tl.includes(k.toLowerCase())); }
 
 function addKw() {
   const inp = document.getElementById('kwInput');
   const v = inp.value.trim();
-  if (v && !userKeywords.includes(v.toLowerCase())) {
-    userKeywords.push(v);
-    extraKeywords.push(v);
-    updateAdded();
+  if (v && !extraKw.includes(v)) {
+    extraKw.push(v);
+    document.getElementById('kwAdded').innerHTML = '✅ Afegides: ' + extraKw.map(k=>`<strong>${k}</strong>`).join(', ');
   }
   inp.value = '';
 }
-function updateAdded() {
-  const el = document.getElementById('kwAdded');
-  if (!el) return;
-  if (extraKeywords.length === 0) { el.textContent = ''; return; }
-  el.innerHTML = '✅ Afegides: ' + extraKeywords.map(k => `<strong>${k}</strong>`).join(', ');
-}
 document.addEventListener('DOMContentLoaded', () => {
-  const inp = document.getElementById('kwInput');
-  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') addKw(); });
+  document.getElementById('kwInput').addEventListener('keydown', e => { if(e.key==='Enter') addKw(); });
 });
 
-// ── DROP ZONE ────────────────────────────────────────────────────────────────
+// ── DROP ZONE ──────────────────────────────────────────────────────────────────
 const dz = document.getElementById('dropZone');
 const fi = document.getElementById('fileInput');
 dz.addEventListener('click', () => fi.click());
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
 dz.addEventListener('dragleave', () => dz.classList.remove('over'));
-dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); if (e.dataTransfer.files[0]) process(e.dataTransfer.files[0]); });
-fi.addEventListener('change', e => { if (e.target.files[0]) process(e.target.files[0]); });
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer.files[0]) process(e.dataTransfer.files[0]); });
+fi.addEventListener('change', e => { if(e.target.files[0]) process(e.target.files[0]); });
 
-let resultWB = null;
-let origFileName = '';
+let resultWB = null, origFileName = '';
 
 function showStatus(msg, type) {
   const el = document.getElementById('status');
-  el.textContent = msg;
-  el.className = type;
-  el.style.display = 'block';
+  el.textContent = msg; el.className = type; el.style.display = 'block';
 }
 
-// ── PROCESSAR ────────────────────────────────────────────────────────────────
+// ── PROCESSAR ──────────────────────────────────────────────────────────────────
 function process(file) {
-  origFileName = file.name.replace('.xlsx', '');
+  origFileName = file.name.replace(/\.xlsx$/i, '');
   showStatus('⏳ Processant el fitxer...', 'info');
   document.getElementById('results').style.display = 'none';
 
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, { type: 'array', cellStyles: true });
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
       if (!ws['!ref']) { showStatus('❌ Full buit o format no reconegut.', 'error'); return; }
 
       const range = XLSX.utils.decode_range(ws['!ref']);
       const totalRows = range.e.r + 1;
 
-      // ── CAPÍTOLS que incloem per títol ──
-      const CAP_KW = [
-        "seguretat contra incendis","seguridad contra incendios",
-        "videoporter","videoportero",
-        "intercomunicació","intercomunicacion","intercomunicación",
-        "intrusió","intrusio","intrusión","alarma","anti-intrusió",
-        "cctv","videovigilà","videovigilancia","circuit tancat","circuito cerrado",
-        "control d'accés","control de acceso","control acces",
-        "mecanismes","mecanismos",
-        "cablejat elèctric","cablejat electric","cableado eléctrico",
-      ];
+      const v = (R, C) => { const c = ws[XLSX.utils.encode_cell({r:R,c:C})]; return c && c.v != null ? String(c.v) : ''; };
 
-      // ── PARAULES CLAU específiques a la descripció ──
-      const DESC_KW = [
-        "central d'incendi","central incendi","central incendio","central analògica","central analogica","central convencional",
-        "detector de fum","detector òptic","detector optic","detector tèrmic","detector termic","detector termovelocimètric",
-        "detector lineal","detector d'incendi","detector incendi",
-        "mòdul d'entrada","mòdul entrada","modul entrada","módulo entrada",
-        "mòdul de sortida","mòdul sortida","modul sortida","módulo salida","mòdul e/s","modul e/s",
-        "pulsador d'alarma","pulsador alarma",
-        "sirena d'incendi","sirena incendi","sirena interior","sirena exterior",
-        "extintor","extintors","BIE","boca d'incendi","boca incendi",
-        "sprinkler","rociador",
-        "central de detecció","central detecció","central deteccion",
-        "bateria 12v","bateria estanca",
-        "font d'alimentació incendi","font alimentació incendi",
-        "desenfumatge","exutori",
-        "ignífug","ignifug","ignifugo","intumescent",
-        "porta tallafoc","porta EI",
-        "cable incendi","cable de incendio","cable resistente al fuego",
-        "grup de pressió contra incendi","grup pressió contra incendi","grupo presión contra incendio",
-        "EN54","UNE 23","RD 513",
-        "detector de CO","detector CO","detecció CO","deteccion CO",
-        "detector de NO","detector NO","central CO","central de CO",
-        "monòxid de carboni","monoxido de carbono",
-        "central d'alarma","central alarma","central de alarma",
-        "detector PIR","detector de moviment","detector volumètric","detector volumetric",
-        "detector magnètic","detector magnetic","detector de vibraci","detector de trencament",
-        "teclat d'alarma","teclado alarma","sirena d'alarma","sirena alarma",
-        "lector de targeta","lector targeta","lector de tarjeta","lector biomètric","lector biometric",
-        "controladora d'accés","controladora accés","controladora acceso",
-        "electròiman","electroiman","electroimán","botó de sortida","boton salida",
-        "càmera IP","camara IP","càmera domo","camara domo","càmera bullet","camara bullet",
-        "càmera PTZ","camara PTZ","càmera analògica","camara analogica",
-        "gravador NVR","gravador DVR","NVR","DVR","monitor CCTV","switch PoE","switch poe",
-        "plaques de carrer","placa de carrer","placa exterior videoporter",
-        "monitor interior videoporter","monitor videoporter",
-        "senyal de sortida d'emergència","senyal emergència","llum d'emergència","llum emergencia",
-        "pictograma extintor","pictograma bombers",
-      ].concat(userKeywords);
-
-      const capKwL  = CAP_KW.map(k => k.toLowerCase());
-      const descKwL = DESC_KW.map(k => k.toLowerCase());
-
-      function capRelevant(t) { const tl = t.toLowerCase(); return capKwL.some(k => tl.includes(k)); }
-      function descRelevant(t) { const tl = t.toLowerCase(); return descKwL.some(k => tl.includes(k)); }
-
-      // ── Recórrer totes les files ──
-      // Primer passar totes les files a un array per poder mirar files adjacents
-      const allRows = [];
-      for (let R = range.s.r; R <= range.e.r; R++) {
-        const getCell = C => ws[XLSX.utils.encode_cell({ r: R, c: C })];
-        const val = C => { const c = getCell(C); return c && c.v != null ? String(c.v) : ''; };
-        allRows.push({ R, val, getCell });
-      }
-
+      // Recórrer files
       const relevant = [];
-      const groupCount = {};
-      let curCap = '', curScap = '', curSscap = '';
-      let capOk = false, scapOk = false, sscapOk = false;
+      let curCap='', curScap='', curSscap='';
+      let cOk=false, scOk=false, sscOk=false;
+      const capsSet = new Set();
 
-      for (let i = 0; i < allRows.length; i++) {
-        const { R, val, getCell } = allRows[i];
-        const tipus = val(1);
-        const descE = val(4);
+      for (let R = range.s.r; R <= range.e.r; R++) {
+        const tipus = v(R,1);
+        const desc  = v(R,4);
 
-        if (tipus === 'CAP') {
-          curCap = descE; curScap = ''; curSscap = '';
-          capOk = capRelevant(descE); scapOk = false; sscapOk = false;
-        } else if (tipus === 'SCAP') {
-          curScap = descE; curSscap = '';
-          scapOk = capRelevant(descE); sscapOk = false;
-        } else if (tipus === 'SSCAP') {
-          curSscap = descE;
-          sscapOk = capRelevant(descE);
-        } else if (tipus === 'PARTIDA') {
-          const inCap  = capOk || scapOk || sscapOk;
-          const inDesc = descRelevant(descE);
-          if (!inCap && !inDesc) continue;
-
-          const num  = val(0);
-          const qty  = parseFloat(val(2)) || null;
-          const unit = val(3);
-
-          // Preu: col G de la mateixa fila o fila anterior
-          let price = getCell(6) ? getCell(6).v : null;
-          if (price == null && i > 0) price = allRows[i-1].getCell(6) ? allRows[i-1].getCell(6).v : null;
-
-          // Import: calcular directament
-          const imp = (price != null && qty != null) ? Math.round(price * qty * 100) / 100 : null;
-
-          let desc = descE.replace(/\n/g, ' ').trim();
-          if (desc.length > 120) {
-            const cut = desc.substring(0, 120);
-            const dot = cut.lastIndexOf('.');
-            desc = dot > 60 ? cut.substring(0, dot + 1) : cut + '...';
-          }
-
-          const capitol = curSscap || curScap || curCap;
-          const grp = getGroup(inCap ? capitol : descE);
-          groupCount[grp] = (groupCount[grp] || 0) + 1;
-
-          relevant.push({ num, capitol, desc, qty, unit, price, imp });
+        if      (tipus==='CAP')   { curCap=desc; curScap=''; curSscap=''; cOk=capOk(desc); scOk=false; sscOk=false; }
+        else if (tipus==='SCAP')  { curScap=desc; curSscap=''; scOk=capOk(desc); sscOk=false; }
+        else if (tipus==='SSCAP') { curSscap=desc; sscOk=capOk(desc); }
+        else if (tipus==='PARTIDA') {
+          if (!cOk && !scOk && !sscOk && !descOk(desc)) continue;
+          const num  = v(R,0);
+          const qty  = v(R,2);
+          const unit = v(R,3);
+          let d = desc.replace(/\n/g,' ').trim();
+          if (d.length>120) { const cut=d.slice(0,120); const dot=cut.lastIndexOf('.'); d=dot>60?cut.slice(0,dot+1):cut+'...'; }
+          const cap = curSscap || curScap || curCap;
+          capsSet.add(cap);
+          relevant.push([num, cap, d, qty, unit, '', '']);
         }
       }
 
       if (relevant.length === 0) {
-        showStatus('⚠️ Cap fila detectada. Comprova el format del fitxer o afegeix paraules clau.', 'error');
+        showStatus('⚠️ Cap partida detectada. Prova a afegir paraules clau.', 'error');
         return;
       }
 
-      // ── Crear fulla neta ──
+      // Crear fulla nova simple amb capçaleres
       const newWB = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(newWB, ws, wb.SheetNames[0].substring(0, 31));
 
-      const newWS = {};
-      // Capçalera
-      const hdrs = ['Nº', 'Capítol', 'Descripció', 'Quantitat', 'Unitats', 'Preu unit. (€)', 'Import (€)'];
-      hdrs.forEach((h, i) => {
-        const addr = XLSX.utils.encode_cell({ r: 0, c: i });
-        newWS[addr] = { v: h, t: 's', s: { font: { bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: 'C2241E' } }, alignment: { horizontal: 'center' } } };
-      });
+      // Fulla original
+      XLSX.utils.book_append_sheet(newWB, ws, wb.SheetNames[0].substring(0,31));
 
-      let destR = 1;
-      let lastCap = null;
+      // Fulla nova
+      const headers = [['Nº','Capítol','Descripció','Quantitat','Unitats','Preu unit. (€)','Import (€)']];
+      const newData = [...headers, ...relevant];
+      const newWS = XLSX.utils.aoa_to_sheet(newData);
 
-      relevant.forEach(({ num, capitol, desc, qty, unit, price, imp }) => {
-        // Fila separadora de capítol
-        if (capitol !== lastCap) {
-          const addr = XLSX.utils.encode_cell({ r: destR, c: 0 });
-          newWS[addr] = { v: capitol, t: 's', s: { font: { bold: true, italic: true, color: { rgb: '555555' } }, fill: { fgColor: { rgb: 'EEEEEE' } } } };
-          for (let c = 1; c < 7; c++) {
-            newWS[XLSX.utils.encode_cell({ r: destR, c })] = { v: '', t: 's', s: { fill: { fgColor: { rgb: 'EEEEEE' } } } };
-          }
-          destR++;
-          lastCap = capitol;
-        }
+      // Amplades de columna
+      newWS['!cols'] = [
+        {wch:6},{wch:30},{wch:55},{wch:12},{wch:10},{wch:16},{wch:14}
+      ];
 
-        const rowFill = destR % 2 === 0 ? 'FAFAFA' : 'FFFFFF';
-        // Calcular import: si tenim preu i quantitat, fem la fórmula
-        // Col G = preu unitari (buit, l'usuari l'omple)
-        // Col H = fórmula =G*C calculada automàticament quan s'escrigui el preu
-        const excelRow = destR + 1;
-        const importFormula = `=F${excelRow}*D${excelRow}`; // F=preu, D=quantitat a la fulla nova
-        const rowData = [num, capitol, desc, qty, unit, null, importFormula];
-        rowData.forEach((v, c) => {
-          const addr = XLSX.utils.encode_cell({ r: destR, c });
-          let cellObj;
-          if (c === 6 && typeof v === 'string' && v.startsWith('=')) {
-            // Fórmula d'import
-            cellObj = { f: v.substring(1), t: 'n', z: '#,##0.00 €',
-              s: { fill: { fgColor: { rgb: rowFill } }, alignment: { horizontal: 'center' } } };
-          } else if (c === 5) {
-            // Preu unitari — buit i editable
-            cellObj = { v: '', t: 's', z: '#,##0.00 €',
-              s: { fill: { fgColor: { rgb: 'FFFDE7' } }, alignment: { horizontal: 'center' } } };
-          } else {
-            cellObj = { v: v ?? '', t: typeof v === 'number' ? 'n' : 's',
-              s: { fill: { fgColor: { rgb: rowFill } }, alignment: { horizontal: c === 2 ? 'left' : 'center', wrapText: c === 2 } } };
-          }
-          newWS[addr] = cellObj;
-        });
-        destR++;
-      });
-
-      newWS['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: destR - 1, c: 6 } });
-      newWS['!cols'] = [6, 30, 55, 12, 10, 16, 14].map(w => ({ wch: w }));
-      newWS['!freeze'] = { xSplit: 0, ySplit: 1 };
       XLSX.utils.book_append_sheet(newWB, newWS, 'SEGURETAT PCI-CCTV-ALARMES');
       resultWB = newWB;
 
-      document.getElementById('statRows').textContent = relevant.length;
+      document.getElementById('statRows').textContent  = relevant.length;
       document.getElementById('statTotal').textContent = totalRows;
-      document.getElementById('statKws').textContent = Object.keys(groupCount).length;
-
-      const list = document.getElementById('kwList');
-      list.innerHTML = '';
-      Object.entries(groupCount).sort((a,b) => b[1]-a[1]).forEach(([group, count]) => {
-        const d = document.createElement('div');
-        d.className = 'kw-item';
-        d.innerHTML = `<div class="dot"></div><strong>${group}</strong><span>${count} fila${count>1?'s':''}</span>`;
-        list.appendChild(d);
-      });
-
+      document.getElementById('statCaps').textContent  = capsSet.size;
       document.getElementById('results').style.display = 'block';
-      showStatus(`✅ ${relevant.length} files detectades. Ja pots descarregar l'Excel.`, 'success');
+      showStatus(`✅ ${relevant.length} partides detectades. Ja pots descarregar l'Excel.`, 'success');
 
-    } catch (err) {
+    } catch(err) {
       showStatus('❌ Error: ' + err.message, 'error');
     }
   };
@@ -572,14 +284,15 @@ function process(file) {
 
 function downloadResult() {
   if (!resultWB) return;
-  XLSX.writeFile(resultWB, `${origFileName}_SEGURETAT.xlsx`, { cellStyles: true });
+  XLSX.writeFile(resultWB, `${origFileName}_SEGURETAT.xlsx`);
 }
 
 function resetApp() {
-  resultWB = null;
+  resultWB = null; extraKw = [];
   document.getElementById('results').style.display = 'none';
   document.getElementById('status').style.display = 'none';
   document.getElementById('fileInput').value = '';
+  document.getElementById('kwAdded').innerHTML = '';
 }
 </script>
 </body>
