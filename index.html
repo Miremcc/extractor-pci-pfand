@@ -504,7 +504,10 @@ function process(file) {
         }
 
         const rowFill = destR % 2 === 0 ? 'FAFAFA' : 'FFFFFF';
-        const rowData = [num, capitol, desc, qty, unit, price, imp];
+        // Calcular import: si tenim preu i quantitat, fem la fórmula
+        const rowNum = destR + 1; // fila Excel (1-indexed)
+        const importVal = (price != null && qty != null) ? price * parseFloat(qty) : imp;
+        const rowData = [num, capitol, desc, qty, unit, price, importVal];
         rowData.forEach((v, c) => {
           const addr = XLSX.utils.encode_cell({ r: destR, c });
           const isMoney = (c === 5 || c === 6) && v != null;
