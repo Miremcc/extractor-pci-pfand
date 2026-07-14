@@ -424,15 +424,21 @@ function process(file) {
       function descRelevant(t) { const tl = t.toLowerCase(); return descKwL.some(k => tl.includes(k)); }
 
       // ── Recórrer totes les files ──
+      // Primer passar totes les files a un array per poder mirar files adjacents
+      const allRows = [];
+      for (let R = range.s.r; R <= range.e.r; R++) {
+        const getCell = C => ws[XLSX.utils.encode_cell({ r: R, c: C })];
+        const val = C => { const c = getCell(C); return c && c.v != null ? String(c.v) : ''; };
+        allRows.push({ R, val, getCell });
+      }
+
       const relevant = [];
       const groupCount = {};
       let curCap = '', curScap = '', curSscap = '';
       let capOk = false, scapOk = false, sscapOk = false;
 
-      for (let R = range.s.r; R <= range.e.r; R++) {
-        const getCell = C => ws[XLSX.utils.encode_cell({ r: R, c: C })];
-        const val = C => { const c = getCell(C); return c && c.v != null ? String(c.v) : ''; };
-
+      for (let i = 0; i < allRows.length; i++) {
+        const { R, val, getCell } = allRows[i];
         const tipus = val(1);
         const descE = val(4);
 
@@ -450,13 +456,18 @@ function process(file) {
           const inDesc = descRelevant(descE);
           if (!inCap && !inDesc) continue;
 
-          const num   = val(0);
-          const qty   = val(2);
-          const unit  = val(3);
-          const price = getCell(6) ? getCell(6).v : null;
-          const imp   = getCell(7) ? getCell(7).v : null;
+          const num  = val(0);
+          const qty  = parseFloat(val(2)) || null;
+          const unit = val(3);
 
-          let desc = descE.replace(/\n/g, ' ');
+          // Preu: col G de la mateixa fila o fila anterior
+          let price = getCell(6) ? getCell(6).v : null;
+          if (price == null && i > 0) price = allRows[i-1].getCell(6) ? allRows[i-1].getCell(6).v : null;
+
+          // Import: calcular directament
+          const imp = (price != null && qty != null) ? Math.round(price * qty * 100) / 100 : null;
+
+          let desc = descE.replace(/\n/g, ' ').trim();
           if (desc.length > 120) {
             const cut = desc.substring(0, 120);
             const dot = cut.lastIndexOf('.');
@@ -505,18 +516,27 @@ function process(file) {
 
         const rowFill = destR % 2 === 0 ? 'FAFAFA' : 'FFFFFF';
         // Calcular import: si tenim preu i quantitat, fem la fórmula
-        const rowNum = destR + 1; // fila Excel (1-indexed)
-        const importVal = (price != null && qty != null) ? price * parseFloat(qty) : imp;
-        const rowData = [num, capitol, desc, qty, unit, price, importVal];
+        // Col G = preu unitari (buit, l'usuari l'omple)
+        // Col H = fórmula =G*C calculada automàticament quan s'escrigui el preu
+        const excelRow = destR + 1;
+        const importFormula = `=F${excelRow}*D${excelRow}`; // F=preu, D=quantitat a la fulla nova
+        const rowData = [num, capitol, desc, qty, unit, null, importFormula];
         rowData.forEach((v, c) => {
           const addr = XLSX.utils.encode_cell({ r: destR, c });
-          const isMoney = (c === 5 || c === 6) && v != null;
-          newWS[addr] = {
-            v: v ?? '',
-            t: typeof v === 'number' ? 'n' : 's',
-            z: isMoney ? '#,##0.00 €' : undefined,
-            s: { fill: { fgColor: { rgb: rowFill } }, alignment: { horizontal: c === 2 ? 'left' : 'center', wrapText: c === 2 } }
-          };
+          let cellObj;
+          if (c === 6 && typeof v === 'string' && v.startsWith('=')) {
+            // Fórmula d'import
+            cellObj = { f: v.substring(1), t: 'n', z: '#,##0.00 €',
+              s: { fill: { fgColor: { rgb: rowFill } }, alignment: { horizontal: 'center' } } };
+          } else if (c === 5) {
+            // Preu unitari — buit i editable
+            cellObj = { v: '', t: 's', z: '#,##0.00 €',
+              s: { fill: { fgColor: { rgb: 'FFFDE7' } }, alignment: { horizontal: 'center' } } };
+          } else {
+            cellObj = { v: v ?? '', t: typeof v === 'number' ? 'n' : 's',
+              s: { fill: { fgColor: { rgb: rowFill } }, alignment: { horizontal: c === 2 ? 'left' : 'center', wrapText: c === 2 } } };
+          }
+          newWS[addr] = cellObj;
         });
         destR++;
       });
