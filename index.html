@@ -168,6 +168,63 @@ const DESC_KW = [
 ];
 
 let extraKw = [];
+  // ── PUNTUACIÓN DE SEGURIDAD ─────────────────────────────────────────────
+
+const SECURITY_SCORE = {
+  5: [
+    "extintor",
+    "bie",
+    "rociador",
+    "sprinkler",
+    "detector",
+    "central d'incendi",
+    "central incendio",
+    "central de detecció",
+    "central alarma",
+    "càmera",
+    "camara",
+    "cctv",
+    "nvr",
+    "dvr",
+    "control d'accés",
+    "control de acceso",
+    "intrusió",
+    "intrusión"
+  ],
+
+  3: [
+    "sirena",
+    "pulsador",
+    "en54",
+    "co2",
+    "abc",
+    "fum",
+    "humo",
+    "pir",
+    "volumètric",
+    "volumetrico",
+    "lector",
+    "targeta",
+    "tarjeta",
+    "videoporter",
+    "videoportero"
+  ],
+
+  1: [
+    "kg",
+    "litres",
+    "litros",
+    "eficàcia",
+    "eficacia",
+    "suport",
+    "soporte",
+    "mànega",
+    "manguera",
+    "ip65",
+    "ip66",
+    "ip67"
+  ]
+};
 
 function capOk(t)  { const tl=t.toLowerCase(); return CAP_KW.concat(extraKw).some(k=>tl.includes(k.toLowerCase())); }
 function descOk(t) { const tl=t.toLowerCase(); return DESC_KW.concat(extraKw).some(k=>tl.includes(k.toLowerCase())); }
