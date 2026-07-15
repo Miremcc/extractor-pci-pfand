@@ -285,7 +285,7 @@ function process(file) {
       for (let R = range.s.r; R <= range.e.r; R++) {
         const tipus = v(R,1);
         const desc  = v(R,4);
-
+       console.log(desc);
         if      (tipus==='CAP')   { curCap=desc; curScap=''; curSscap=''; cOk=capOk(desc); scOk=false; sscOk=false; }
         else if (tipus==='SCAP')  { curScap=desc; curSscap=''; scOk=capOk(desc); sscOk=false; }
         else if (tipus==='SSCAP') { curSscap=desc; sscOk=capOk(desc); }
