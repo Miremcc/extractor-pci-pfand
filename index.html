@@ -227,8 +227,10 @@ const SECURITY_SCORE = {
 };
 
 function capOk(t)  { const tl=t.toLowerCase(); return CAP_KW.concat(extraKw).some(k=>tl.includes(k.toLowerCase())); }
-function descOk(t) { const tl=t.toLowerCase(); return DESC_KW.concat(extraKw).some(k=>tl.includes(k.toLowerCase())); }
-
+function descOk(t) {
+  const tl = t.toLowerCase();
+  return DESC_KW.concat(extraKw).some(k => tl.includes(k.toLowerCase()));
+}
 function addKw() {
   const inp = document.getElementById('kwInput');
   const v = inp.value.trim();
