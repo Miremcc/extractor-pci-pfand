@@ -133,104 +133,76 @@
 <footer>Plana Fàbrega · Grup Pyrénées · Eina interna per a memòries tècniques</footer>
 
 <script>
-// ── PARAULES CLAU ─────────────────────────────────────────────────────────────
-const CAP_KW = [
-  "seguretat contra incendis","seguridad contra incendios",
-  "videoporter","videoportero","intercomunicació","intercomunicacion","intercomunicación",
-  "intrusió","intrusio","intrusión","alarma","anti-intrusió",
-  "cctv","videovigilà","videovigilancia","circuit tancat","circuito cerrado",
-  "control d'accés","control de acceso","control acces",
-  "mecanismes","mecanismos","cablejat elèctric","cablejat electric","cableado eléctrico",
+// ── PARAULES CLAU UNIVERSALS (busca a totes les files) ───────────────────────
+const DESC_KW = [
+  // Incendis - centrals i detectors
+  "central d'incendi","central incendi","central incendio",
+  "central analògica","central analogica","central convencional",
+  "central de detecció","central detecció",
+  "detector de fum","detector òptic","detector optic",
+  "detector tèrmic","detector termic","detector termovelocimètric",
+  "detector lineal","detector d'incendi","detector incendi",
+  "detector de CO","detector CO","detector de NO","detector NO",
+  "monòxid","monoxid","central CO",
+  // Incendis - elements
+  "pulsador d'alarma","pulsador alarma","pulsador d'incendi",
+  "sirena d'incendi","sirena incendi",
+  "extintor","BIE","boca d'incendi","boca incendi","sprinkler","rociador",
+  "bateria 12v","bateria estanca",
+  "desenfumatge","exutori","ignífug","ignifug","intumescent",
+  "porta tallafoc","porta EI",
+  "cable incendi","cable resistente al fuego",
+  "grup de pressió contra incendi","grupo presión contra incendio",
+  "EN54","RD 513",
+  "mòdul d'entrada","mòdul entrada","módulo entrada",
+  "mòdul de sortida","mòdul sortida","módulo salida",
+  // Senyalització emergència
+  "llum d'emergència","llum emergencia","bloc autònom",
+  "senyal d'evacuació","senyal evacuació",
+  "pictograma extintor","pictograma bombers",
+  // Incendis per capítol
+  "contra incendis","contraincendis","detecció i alarma",
+  "sistemes d'aigua","sistemes d'extinció","elements passius",
+  "desenfumatge coberta","senyalització incendi",
+  // Intrusió / Alarma
+  "central d'alarma","central alarma","central de alarma",
+  "detector PIR","detector de moviment PIR","detector volumètric",
+  "detector magnètic","detector magnetic",
+  "teclat d'alarma","teclado alarma","sirena d'alarma","sirena alarma",
+  "detector de trencament",
+  // Control accés
+  "lector de targeta","lector targeta","lector de tarjeta",
+  "lector biomètric","lector biometric",
+  "controladora d'accés","controladora accés",
+  "electròiman","electroiman","botó de sortida",
+  // CCTV
+  "càmera IP","camara IP","càmera domo","camara domo",
+  "càmera bullet","camara bullet","càmera PTZ","camara PTZ",
+  "gravador NVR","gravador DVR","NVR","DVR","monitor CCTV","switch PoE",
+  // Videoporter
+  "placa de carrer","plaques de carrer",
+  "monitor videoporter","monitor interior videoporter",
+  "videoportero","videoporter","intercomunicació","intercomunicacion",
+  // Mecanismes elèctrics (tots)
+  "presa de corrent","punt de llum","interruptor simple",
+  "interruptor doble","commutador","mecanisme d'interruptor",
+  "mecanisme de commutador","mecanisme per a presa",
+  "mecanisme per a commutador","mecanisme per a interruptor",
 ];
 
-const DESC_KW = [
-  "central d'incendi","central incendi","central incendio","central analògica","central analogica","central convencional",
-  "detector de fum","detector òptic","detector optic","detector tèrmic","detector termic","detector termovelocimètric",
-  "detector lineal","detector d'incendi","detector incendi",
-  "mòdul d'entrada","mòdul entrada","modul entrada","módulo entrada",
-  "mòdul de sortida","mòdul sortida","modul sortida","módulo salida",
-  "pulsador d'alarma","pulsador alarma",
-  "sirena d'incendi","sirena incendi","sirena interior","sirena exterior",
-  "extintor","extintors","BIE","boca d'incendi","boca incendi","sprinkler","rociador",
-  "central de detecció","central detecció","bateria 12v","bateria estanca",
-  "desenfumatge","exutori","ignífug","ignifug","intumescent","porta tallafoc","porta EI",
-  "cable incendi","cable de incendio","grup de pressió contra incendi","grupo presión contra incendio",
-  "EN54","UNE 23","RD 513",
-  "detector de CO","detector CO","detecció CO","detector de NO","detector NO","central CO",
-  "monòxid de carboni","monoxido de carbono",
-  "central d'alarma","central alarma","detector PIR","detector de moviment","detector volumètric",
-  "detector magnètic","detector magnetic","teclat d'alarma","teclado alarma","sirena d'alarma",
-  "lector de targeta","lector targeta","lector de tarjeta","controladora d'accés","controladora accés",
-  "càmera IP","camara IP","càmera domo","camara domo","càmera bullet","camara bullet",
-  "càmera PTZ","camara PTZ","gravador NVR","gravador DVR","NVR","DVR","monitor CCTV",
-  "plaques de carrer","placa de carrer","monitor videoporter",
-  "llum d'emergència","llum emergencia","pictograma extintor","pictograma bombers",
+// Paraules a IGNORAR (evitar falsos positius)
+const SKIP_WORDS = [
+  'TOTAL','Obra','Capítol','CAP','SCAP','SSCAP','Titol 3',
+  'PRESSUPOST','NOTA','SUM(','ROUND('
 ];
 
 let extraKw = [];
-  // ── PUNTUACIÓN DE SEGURIDAD ─────────────────────────────────────────────
 
-const SECURITY_SCORE = {
-  5: [
-    "extintor",
-    "bie",
-    "rociador",
-    "sprinkler",
-    "detector",
-    "central d'incendi",
-    "central incendio",
-    "central de detecció",
-    "central alarma",
-    "càmera",
-    "camara",
-    "cctv",
-    "nvr",
-    "dvr",
-    "control d'accés",
-    "control de acceso",
-    "intrusió",
-    "intrusión"
-  ],
-
-  3: [
-    "sirena",
-    "pulsador",
-    "en54",
-    "co2",
-    "abc",
-    "fum",
-    "humo",
-    "pir",
-    "volumètric",
-    "volumetrico",
-    "lector",
-    "targeta",
-    "tarjeta",
-    "videoporter",
-    "videoportero"
-  ],
-
-  1: [
-    "kg",
-    "litres",
-    "litros",
-    "eficàcia",
-    "eficacia",
-    "suport",
-    "soporte",
-    "mànega",
-    "manguera",
-    "ip65",
-    "ip66",
-    "ip67"
-  ]
-};
-
-function capOk(t)  { const tl=t.toLowerCase(); return CAP_KW.concat(extraKw).some(k=>tl.includes(k.toLowerCase())); }
 function descOk(t) {
   const tl = t.toLowerCase();
   return DESC_KW.concat(extraKw).some(k => tl.includes(k.toLowerCase()));
 }
+
 function addKw() {
   const inp = document.getElementById('kwInput');
   const v = inp.value.trim();
@@ -278,30 +250,72 @@ function process(file) {
 
       const v = (R, C) => { const c = ws[XLSX.utils.encode_cell({r:R,c:C})]; return c && c.v != null ? String(c.v) : ''; };
 
-      // Recórrer files
+      // Recórrer TOTES les files — lògica universal per qualsevol format
       const relevant = [];
-      let curCap='', curScap='', curSscap='';
-      let cOk=false, scOk=false, sscOk=false;
       const capsSet = new Set();
 
       for (let R = range.s.r; R <= range.e.r; R++) {
-        const tipus = v(R,1);
-        const desc  = v(R,4);
-       console.log(desc);
-        if      (tipus==='CAP')   { curCap=desc; curScap=''; curSscap=''; cOk=capOk(desc); scOk=false; sscOk=false; }
-        else if (tipus==='SCAP')  { curScap=desc; curSscap=''; scOk=capOk(desc); sscOk=false; }
-        else if (tipus==='SSCAP') { curSscap=desc; sscOk=capOk(desc); }
-        else if (tipus==='PARTIDA') {
-          if (!cOk && !scOk && !sscOk && !descOk(desc)) continue;
-          const num  = v(R,0);
-          const qty  = v(R,2);
-          const unit = v(R,3);
-          let d = desc.replace(/\n/g,' ').trim();
-          if (d.length>120) { const cut=d.slice(0,120); const dot=cut.lastIndexOf('.'); d=dot>60?cut.slice(0,dot+1):cut+'...'; }
-          const cap = curSscap || curScap || curCap;
-          capsSet.add(cap);
-          relevant.push([num, cap, d, qty, unit, '', '']);
+        // Agafar text de totes les cel·les de la fila
+        let filaText = '';
+        let longDesc = '';
+        let num = '', qty = '', unit = '';
+
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const cell = ws[XLSX.utils.encode_cell({r:R,c:C})];
+          if (!cell || cell.v == null) continue;
+          const val = String(cell.v).trim();
+          if (!val) continue;
+          filaText += ' ' + val;
+          // La descripció llarga és la cel·la amb més text
+          if (val.length > longDesc.length) longDesc = val;
         }
+
+        // Saltar files de capítol/total/fórmules/buides
+        if (!longDesc || longDesc.length < 15) continue;
+        if (SKIP_WORDS.some(sw => filaText.includes(sw))) continue;
+
+        // Detectar per paraula clau
+        if (!descOk(filaText)) continue;
+
+        // Extreure camps — intentem detectar posició
+        // Num: primer camp curt alfanumèric
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const cell = ws[XLSX.utils.encode_cell({r:R,c:C})];
+          if (!cell || cell.v == null) continue;
+          const val = String(cell.v).trim();
+          if (!num && val && val.length < 20 && /\d/.test(val) && val.length < longDesc.length) { num = val; continue; }
+          if (num && !qty && typeof cell.v === 'number' && cell.v > 0 && cell.v < 10000) { qty = cell.v; continue; }
+          if (num && qty && !unit && val && val.length < 10 && !/\d{4}/.test(val)) { unit = val; continue; }
+        }
+
+        let d = longDesc.replace(/\n/g,' ').trim();
+        if (d.length > 120) {
+          const cut = d.slice(0,120);
+          const dot = cut.lastIndexOf('.');
+          d = dot > 60 ? cut.slice(0,dot+1) : cut+'...';
+        }
+
+        // Capítol: buscar fila anterior amb 'Capítol' o 'CAP' o 'Titol'
+        let cap = '';
+        for (let PR = R-1; PR >= Math.max(0, R-10); PR--) {
+          for (let C = range.s.c; C <= range.e.c; C++) {
+            const cell = ws[XLSX.utils.encode_cell({r:PR,c:C})];
+            if (!cell || cell.v == null) continue;
+            const pv = String(cell.v);
+            if (['CAP','SCAP','SSCAP','Capítol','Titol 3'].some(t => pv === t)) {
+              // Agafar la descripció del capítol
+              for (let C2 = C+1; C2 <= range.e.c; C2++) {
+                const dc = ws[XLSX.utils.encode_cell({r:PR,c:C2})];
+                if (dc && dc.v && String(dc.v).length > 3) { cap = String(dc.v); break; }
+              }
+              if (cap) break;
+            }
+          }
+          if (cap) break;
+        }
+
+        capsSet.add(cap || 'General');
+        relevant.push([num, cap || 'General', d, qty, unit, '', '']);
       }
 
       if (relevant.length === 0) {
