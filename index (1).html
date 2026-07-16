@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Extractor PCI · Plana Fàbrega</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --red: #C2241E; --red-dk: #9a1b16; --red-lt: #fdf1f0; --red-mid: #f5c6c4;
+    --gray-50: #f8f8f8; --gray-100: #f0f0f0; --gray-300: #d0d0d0;
+    --gray-500: #888; --gray-900: #1a1a1a; --radius: 10px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--gray-50); color: var(--gray-900); min-height: 100vh; }
+
+  header { background: var(--red); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: 10px; color: white; font-weight: 700; font-size: 0.95rem; }
+  .logo-icon { width: 28px; height: 28px; background: rgba(255,255,255,0.18); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .badge { background: rgba(255,255,255,0.18); color: white; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .hero { background: white; border-bottom: 1px solid var(--gray-100); padding: 44px 32px 36px; text-align: center; }
+  .hero h1 { font-size: 1.65rem; font-weight: 700; margin-bottom: 10px; }
+  .hero h1 span { color: var(--red); }
+  .hero p { color: var(--gray-500); font-size: 0.9rem; max-width: 460px; margin: 0 auto; line-height: 1.6; }
+
+  main { max-width: 680px; margin: 36px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 18px; }
+
+  .card { background: white; border-radius: var(--radius); border: 1px solid var(--gray-100); box-shadow: var(--shadow); padding: 26px; }
+  .card-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-500); margin-bottom: 14px; }
+
+  .drop-zone { border: 2px dashed var(--red-mid); border-radius: 8px; padding: 52px 24px; text-align: center; cursor: pointer; transition: all 0.18s; background: var(--red-lt); }
+  .drop-zone:hover, .drop-zone.over { border-color: var(--red); background: #fae8e7; }
+  .drop-icon { width: 52px; height: 52px; background: white; border-radius: 12px; border: 1px solid var(--red-mid); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .drop-zone h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 5px; }
+  .drop-zone p { font-size: 0.82rem; color: var(--gray-500); }
+  .drop-zone strong { color: var(--red); }
+  input[type=file] { display: none; }
+
+  .kw-add { display: flex; gap: 8px; }
+  .kw-add input { flex: 1; border: 1px solid var(--gray-300); border-radius: 7px; padding: 9px 12px; font-size: 0.875rem; font-family: Inter, sans-serif; outline: none; }
+  .kw-add input:focus { border-color: var(--red); }
+  #kwAdded { margin-top: 8px; font-size: 0.78rem; color: var(--gray-500); min-height: 18px; }
+
+  .btn { background: var(--red); color: white; border: none; border-radius: 7px; padding: 9px 20px; font-size: 0.875rem; font-weight: 600; font-family: Inter, sans-serif; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+  .btn:hover { background: var(--red-dk); }
+  .btn-ghost { background: white; color: var(--red); border: 1.5px solid var(--red-mid); border-radius: 7px; padding: 9px 20px; font-size: 0.875rem; font-weight: 600; font-family: Inter, sans-serif; cursor: pointer; transition: all 0.15s; }
+  .btn-ghost:hover { background: var(--red-lt); }
+
+  #status { display: none; padding: 12px 16px; border-radius: 8px; font-size: 0.875rem; font-weight: 500; }
+  #status.info    { background: #e8f4fd; color: #1a5276; border: 1px solid #aed6f1; }
+  #status.success { background: #eafaf1; color: #1a6636; border: 1px solid #a9dfbf; }
+  #status.error   { background: var(--red-lt); color: var(--red-dk); border: 1px solid var(--red-mid); }
+
+  #results { display: none; }
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 18px; }
+  .stat { background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: 8px; padding: 14px; text-align: center; }
+  .stat.hi { background: var(--red-lt); border-color: var(--red-mid); }
+  .stat .num { font-size: 1.8rem; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .stat.hi .num { color: var(--red); }
+  .stat .lbl { font-size: 0.72rem; color: var(--gray-500); line-height: 1.3; }
+  .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+  footer { text-align: center; padding: 28px 20px; color: var(--gray-300); font-size: 0.75rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 1C8 1 3.5 5.5 3.5 9.5C3.5 12 5.5 14 8 14C10.5 14 12.5 12 12.5 9.5C12.5 5.5 8 1 8 1Z" fill="white"/>
+        <path d="M8 7C8 7 6 9 6 10.5C6 11.6 6.9 12.5 8 12.5C9.1 12.5 10 11.6 10 10.5C10 9 8 7 8 7Z" fill="#C2241E"/>
+      </svg>
+    </div>
+    Plana Fàbrega
+  </div>
+  <span class="badge">Eina interna</span>
+</header>
+
+<div class="hero">
+  <h1>Extractor <span>PCI · CCTV · Alarmes</span></h1>
+  <p>Puja una memòria d'instal·lacions i obtén una fulla neta amb les partides de seguretat llestes per valorar.</p>
+</div>
+
+<main>
+
+  <div class="card">
+    <div class="card-title">1 · Selecciona la memòria</div>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept=".xlsx">
+      <div class="drop-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C2241E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <h3>Arrossega el fitxer aquí</h3>
+      <p>o <strong>fes clic per seleccionar</strong> · Format .xlsx</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">2 · Afegir paraula clau extra (opcional)</div>
+    <div class="kw-add">
+      <input type="text" id="kwInput" placeholder="Ex: central analògica, grup pressió..." />
+      <button class="btn" onclick="addKw()">+ Afegir</button>
+    </div>
+    <div id="kwAdded"></div>
+  </div>
+
+  <div id="status"></div>
+
+  <div class="card" id="results">
+    <div class="card-title">3 · Resultat</div>
+    <div class="stats-row">
+      <div class="stat hi"><div class="num" id="statRows">0</div><div class="lbl">Partides detectades</div></div>
+      <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Total partides memòria</div></div>
+      <div class="stat"><div class="num" id="statCaps">0</div><div class="lbl">Capítols trobats</div></div>
+    </div>
+    <div class="action-row">
+      <button class="btn" onclick="downloadResult()">⬇ Descarregar Excel</button>
+      <button class="btn-ghost" onclick="resetApp()">↩ Nova memòria</button>
+    </div>
+  </div>
+
+</main>
+
+<footer>Plana Fàbrega · Grup Pyrénées · Eina interna per a memòries tècniques</footer>
+
+<script>
+// ── PARAULES CLAU UNIVERSALS (busca a totes les files) ───────────────────────
+const DESC_KW = [
+  // Incendis - centrals i detectors
+  "central d'incendi","central incendi","central incendio",
+  "central analògica","central analogica","central convencional",
+  "central de detecció","central detecció",
+  "detector de fum","detector òptic","detector optic",
+  "detector tèrmic","detector termic","detector termovelocimètric",
+  "detector lineal","detector d'incendi","detector incendi",
+  "detector de CO","detector CO","detector de NO","detector NO",
+  "monòxid","monoxid","central CO",
+  // Incendis - elements
+  "pulsador d'alarma","pulsador alarma","pulsador d'incendi",
+  "sirena d'incendi","sirena incendi",
+  "extintor","BIE","boca d'incendi","boca incendi","sprinkler","rociador",
+  "bateria 12v","bateria estanca",
+  "desenfumatge","exutori","ignífug","ignifug","intumescent",
+  "porta tallafoc","porta EI",
+  "cable incendi","cable resistente al fuego",
+  "grup de pressió contra incendi","grupo presión contra incendio",
+  "EN54","RD 513",
+  "mòdul d'entrada","mòdul entrada","módulo entrada",
+  "mòdul de sortida","mòdul sortida","módulo salida",
+  // Senyalització emergència
+  "llum d'emergència","llum emergencia","bloc autònom",
+  "senyal d'evacuació","senyal evacuació",
+  "pictograma extintor","pictograma bombers",
+  // Incendis per capítol
+  "contra incendis","contraincendis","detecció i alarma",
+  "sistemes d'aigua","sistemes d'extinció","elements passius",
+  "desenfumatge coberta","senyalització incendi",
+  // Intrusió / Alarma
+  "central d'alarma","central alarma","central de alarma",
+  "detector PIR","detector de moviment PIR","detector volumètric",
+  "detector magnètic","detector magnetic",
+  "teclat d'alarma","teclado alarma","sirena d'alarma","sirena alarma",
+  "detector de trencament",
+  // Control accés
+  "lector de targeta","lector targeta","lector de tarjeta",
+  "lector biomètric","lector biometric",
+  "controladora d'accés","controladora accés",
+  "electròiman","electroiman","botó de sortida",
+  // CCTV
+  "càmera IP","camara IP","càmera domo","camara domo",
+  "càmera bullet","camara bullet","càmera PTZ","camara PTZ",
+  "gravador NVR","gravador DVR","NVR","DVR","monitor CCTV","switch PoE",
+  // Videoporter
+  "placa de carrer","plaques de carrer",
+  "monitor videoporter","monitor interior videoporter",
+  "videoportero","videoporter","intercomunicació","intercomunicacion",
+  // Mecanismes elèctrics (tots)
+  "presa de corrent","punt de llum","interruptor simple",
+  "interruptor doble","commutador","mecanisme d'interruptor",
+  "mecanisme de commutador","mecanisme per a presa",
+  "mecanisme per a commutador","mecanisme per a interruptor",
+];
+
+// Paraules a IGNORAR (evitar falsos positius)
+const SKIP_WORDS = [
+  'TOTAL','Obra','Capítol','CAP','SCAP','SSCAP','Titol 3',
+  'PRESSUPOST','NOTA','SUM(','ROUND('
+];
+
+let extraKw = [];
+
+function descOk(t) {
+  const tl = t.toLowerCase();
+  return DESC_KW.concat(extraKw).some(k => tl.includes(k.toLowerCase()));
+}
+
+function addKw() {
+  const inp = document.getElementById('kwInput');
+  const v = inp.value.trim();
+  if (v && !extraKw.includes(v)) {
+    extraKw.push(v);
+    document.getElementById('kwAdded').innerHTML = '✅ Afegides: ' + extraKw.map(k=>`<strong>${k}</strong>`).join(', ');
+  }
+  inp.value = '';
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('kwInput').addEventListener('keydown', e => { if(e.key==='Enter') addKw(); });
+});
+
+// ── DROP ZONE ──────────────────────────────────────────────────────────────────
+const dz = document.getElementById('dropZone');
+const fi = document.getElementById('fileInput');
+dz.addEventListener('click', () => fi.click());
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer.files[0]) process(e.dataTransfer.files[0]); });
+fi.addEventListener('change', e => { if(e.target.files[0]) process(e.target.files[0]); });
+
+let resultWB = null, origFileName = '';
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.textContent = msg; el.className = type; el.style.display = 'block';
+}
+
+// ── PROCESSAR ──────────────────────────────────────────────────────────────────
+function process(file) {
+  origFileName = file.name.replace(/\.xlsx$/i, '');
+  showStatus('⏳ Processant el fitxer...', 'info');
+  document.getElementById('results').style.display = 'none';
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      if (!ws['!ref']) { showStatus('❌ Full buit o format no reconegut.', 'error'); return; }
+
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      const totalRows = range.e.r + 1;
+
+      const v = (R, C) => { const c = ws[XLSX.utils.encode_cell({r:R,c:C})]; return c && c.v != null ? String(c.v) : ''; };
+
+      // Recórrer TOTES les files — lògica universal per qualsevol format
+      const relevant = [];
+      const capsSet = new Set();
+
+      for (let R = range.s.r; R <= range.e.r; R++) {
+        // Agafar text de totes les cel·les de la fila
+        let filaText = '';
+        let longDesc = '';
+        let num = '', qty = '', unit = '';
+
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const cell = ws[XLSX.utils.encode_cell({r:R,c:C})];
+          if (!cell || cell.v == null) continue;
+          const val = String(cell.v).trim();
+          if (!val) continue;
+          filaText += ' ' + val;
+          // La descripció llarga és la cel·la amb més text
+          if (val.length > longDesc.length) longDesc = val;
+        }
+
+        // Saltar files de capítol/total/fórmules/buides
+        if (!longDesc || longDesc.length < 15) continue;
+        if (SKIP_WORDS.some(sw => filaText.includes(sw))) continue;
+
+        // Detectar per paraula clau
+        if (!descOk(filaText)) continue;
+
+        // Extreure camps — intentem detectar posició
+        // Num: primer camp curt alfanumèric
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const cell = ws[XLSX.utils.encode_cell({r:R,c:C})];
+          if (!cell || cell.v == null) continue;
+          const val = String(cell.v).trim();
+          if (!num && val && val.length < 20 && /\d/.test(val) && val.length < longDesc.length) { num = val; continue; }
+          if (num && !qty && typeof cell.v === 'number' && cell.v > 0 && cell.v < 10000) { qty = cell.v; continue; }
+          if (num && qty && !unit && val && val.length < 10 && !/\d{4}/.test(val)) { unit = val; continue; }
+        }
+
+        let d = longDesc.replace(/\n/g,' ').trim();
+        if (d.length > 120) {
+          const cut = d.slice(0,120);
+          const dot = cut.lastIndexOf('.');
+          d = dot > 60 ? cut.slice(0,dot+1) : cut+'...';
+        }
+
+        // Capítol: buscar fila anterior amb 'Capítol' o 'CAP' o 'Titol'
+        let cap = '';
+        for (let PR = R-1; PR >= Math.max(0, R-10); PR--) {
+          for (let C = range.s.c; C <= range.e.c; C++) {
+            const cell = ws[XLSX.utils.encode_cell({r:PR,c:C})];
+            if (!cell || cell.v == null) continue;
+            const pv = String(cell.v);
+            if (['CAP','SCAP','SSCAP','Capítol','Titol 3'].some(t => pv === t)) {
+              // Agafar la descripció del capítol
+              for (let C2 = C+1; C2 <= range.e.c; C2++) {
+                const dc = ws[XLSX.utils.encode_cell({r:PR,c:C2})];
+                if (dc && dc.v && String(dc.v).length > 3) { cap = String(dc.v); break; }
+              }
+              if (cap) break;
+            }
+          }
+          if (cap) break;
+        }
+
+        capsSet.add(cap || 'General');
+        relevant.push([num, cap || 'General', d, qty, unit, '', '']);
+      }
+
+      if (relevant.length === 0) {
+        showStatus('⚠️ Cap partida detectada. Prova a afegir paraules clau.', 'error');
+        return;
+      }
+
+      // Crear fulla nova simple amb capçaleres
+      const newWB = XLSX.utils.book_new();
+
+      // Fulla original
+      XLSX.utils.book_append_sheet(newWB, ws, wb.SheetNames[0].substring(0,31));
+
+      // Fulla nova
+      const headers = [['Nº','Capítol','Descripció','Quantitat','Unitats','Preu unit. (€)','Import (€)']];
+      const newData = [...headers, ...relevant];
+      const newWS = XLSX.utils.aoa_to_sheet(newData);
+
+      // Amplades de columna
+      newWS['!cols'] = [
+        {wch:6},{wch:30},{wch:55},{wch:12},{wch:10},{wch:16},{wch:14}
+      ];
+
+      XLSX.utils.book_append_sheet(newWB, newWS, 'SEGURETAT PCI-CCTV-ALARMES');
+      resultWB = newWB;
+
+      document.getElementById('statRows').textContent  = relevant.length;
+      document.getElementById('statTotal').textContent = totalRows;
+      document.getElementById('statCaps').textContent  = capsSet.size;
+      document.getElementById('results').style.display = 'block';
+      showStatus(`✅ ${relevant.length} partides detectades. Ja pots descarregar l'Excel.`, 'success');
+
+    } catch(err) {
+      showStatus('❌ Error: ' + err.message, 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function downloadResult() {
+  if (!resultWB) return;
+  XLSX.writeFile(resultWB, `${origFileName}_SEGURETAT.xlsx`);
+}
+
+function resetApp() {
+  resultWB = null; extraKw = [];
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('status').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('kwAdded').innerHTML = '';
+}
+</script>
+</body>
+</html>
